@@ -1,0 +1,5 @@
+[
+  { "id": "lab", "title": "Finish database lab", "status": "done", "minutes": 90, "due": "2026-10-09" },
+  { "id": "project", "title": "Implement team project search", "status": "doing", "minutes": 120, "due": "2026-10-12" },
+  { "id": "review", "title": "Review a teammate's pull request", "status": "todo", "minutes": 30, "due": "2026-10-11" }
+]

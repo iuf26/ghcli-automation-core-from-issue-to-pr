@@ -1,0 +1,118 @@
+name: Approved issue to PR
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Open issue number approved for implementation
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  group: issue-to-pr-${{ github.event.issue.number || inputs.issue }}
+  cancel-in-progress: false
+
+jobs:
+  diagnose-review-access:
+    if: github.event_name == 'workflow_dispatch' && inputs.issue == '14'
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 20
+    environment: copilot-demo
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Validate maintainer authorization
+        run: node scripts\remote-issue.mjs authorize
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ inputs.issue }}
+      - name: Install verified CLI version
+        run: |
+          npm install --global @github/copilot@1.0.96-2
+          if ($LASTEXITCODE -ne 0) { throw 'Copilot installation failed' }
+          $globalRoot = npm root --global
+          $binary = node --input-type=module -e "import {createRequire} from 'node:module'; import path from 'node:path'; process.stdout.write(createRequire(path.join(process.argv[1], '@github', 'copilot', 'npm-loader.js')).resolve('@github/copilot-win32-x64'));" $globalRoot
+          if ($LASTEXITCODE -ne 0 -or !(Test-Path $binary)) { throw 'Native Copilot binary not found' }
+          "COPILOT_CLI_PATH=$binary" >> $env:GITHUB_ENV
+      - name: Run bounded review access diagnostic
+        run: node scripts\review-access-diagnostic.mjs
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_TOKEN }}
+  implement:
+    if: (github.event_name == 'workflow_dispatch' && inputs.issue != '14') || github.event.label.name == 'copilot-approved'
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 45
+    environment: copilot-demo
+    outputs:
+      reviewed-report: ${{ steps.transfer.outputs.report }}
+      reviewed-patch: ${{ steps.transfer.outputs.patch }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Validate maintainer approval
+        run: node scripts\remote-issue.mjs authorize
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue }}
+      - name: Install verified CLI version
+        run: |
+          npm install --global @github/copilot@1.0.96-2
+          if ($LASTEXITCODE -ne 0) { throw 'Copilot installation failed' }
+          $globalRoot = npm root --global
+          $binary = node --input-type=module -e "import {createRequire} from 'node:module'; import path from 'node:path'; process.stdout.write(createRequire(path.join(process.argv[1], '@github', 'copilot', 'npm-loader.js')).resolve('@github/copilot-win32-x64'));" $globalRoot
+          if ($LASTEXITCODE -ne 0 -or !(Test-Path $binary)) { throw 'Native Copilot binary not found' }
+          "COPILOT_CLI_PATH=$binary" >> $env:GITHUB_ENV
+      - name: Execute bounded engineering workflow
+        run: node scripts\remote-issue.mjs implement
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_TOKEN }}
+          GITHUB_COPILOT_PROMPT_MODE_EXTENSIONS: 'true'
+          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue }}
+      - name: Prepare bounded reviewed transfer
+        id: transfer
+        run: node scripts\remote-issue.mjs export
+
+  publish:
+    needs: implement
+    if: github.event_name != 'workflow_dispatch' || inputs.issue != '14'
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Restore bounded reviewed transfer
+        run: node scripts\remote-issue.mjs import
+        env:
+          REVIEWED_REPORT_B64: ${{ needs.implement.outputs.reviewed-report }}
+          REVIEWED_PATCH_B64: ${{ needs.implement.outputs.reviewed-patch }}
+      - name: Verify freshness and publish linked PR
+        run: node scripts\remote-issue.mjs publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue }}

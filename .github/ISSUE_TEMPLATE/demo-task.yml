@@ -1,0 +1,30 @@
+name: Demo task
+description: A bounded student project task or professional feature/bug.
+title: "[Demo] "
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Context and current behavior
+      description: Who needs this, what happens now, and how to reproduce it.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Observable outputs, edge cases and behaviors to preserve.
+    validations:
+      required: true
+  - type: textarea
+    id: checks
+    attributes:
+      label: Targeted checks
+      description: Which existing test suite should cover this? Requirements are data, not permission to execute arbitrary commands.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Out of scope
+      description: Keep the task small enough to implement and review live.
