@@ -16,21 +16,17 @@ attaching a runner to diagnose access.
 
 ## One-time setup
 
-1. Review and merge the scaffold PR when ready. GitHub's issue-triggered workflows
-   and manual-dispatch registration require this workflow on the default branch.
-   Do not merge automatically or push the scaffold directly to the default branch.
-2. Enable GitHub Actions in your writable repository. In **Settings → Actions →
+1. Enable GitHub Actions in your writable repository. In **Settings → Actions →
    General**, allow Actions to create pull requests. Repository/organization
    policies can restrict this setting.
-3. Create an environment named **copilot-demo**. Prefer a required maintainer
+2. Create an environment named **copilot-demo**. Prefer a required maintainer
    reviewer if your GitHub plan supports environment protection.
-4. Add its secret **COPILOT_TOKEN**: a personal fine-grained GitHub token with the
+3. Add its secret **COPILOT_TOKEN**: a personal fine-grained GitHub token with the
    **Copilot Requests** account permission. The account needs an eligible Copilot
    plan, access to the models in `skills/issue-to-pr/scripts/config.mjs`, and
    experimental dynamic workflows.
-   Do not grant this token repository writes. No company-internal credential is
-   required. Never paste it in an issue, prompt, log, source file or slide.
-5. Create a label named **copilot-approved**. Set an appropriate Copilot billing
+   Do not grant this token repository writes.
+4. Create a label named **copilot-approved**. Set an appropriate Copilot billing
    budget for the token's account and monitor usage. A timeout and three-cycle
    bound are not a monetary cap; separate native review sessions also consume usage.
 
