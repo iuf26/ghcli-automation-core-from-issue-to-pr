@@ -42,7 +42,7 @@ the 1-500-character compatibility limit and string-only metadata values.
 
 ## Interactive
 
-Start `copilot --experimental --model gpt-6.1-sol`, then enter:
+Start `copilot --experimental --model gpt-5.4`, then enter:
 
 ```text
 Use the issue-to-pr skill to implement issue 3. Base the isolated feature branch
@@ -85,7 +85,7 @@ Cloud sandboxing is optional, not required for this local demo.
 Put `{"issue":3,"base":"main"}` in an ignored local input file, then run:
 
 ```text
-copilot --experimental --model gpt-6.1-sol --allow-tool=read --allow-tool=search --allow-tool=write --disable-builtin-mcps workflow run issue-to-pr --args @.demo-runs\input.json --result-file .demo-runs\result.json
+copilot --experimental --model gpt-5.4 --allow-tool=read --allow-tool=search --allow-tool=write --disable-builtin-mcps workflow run issue-to-pr --args @.demo-runs\input.json --result-file .demo-runs\result.json
 ```
 
 This path skips the parent skill: it produces a checked diff and evidence, not a
