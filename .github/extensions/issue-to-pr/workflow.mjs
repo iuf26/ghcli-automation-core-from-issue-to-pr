@@ -155,7 +155,7 @@ export async function runIssueWorkflow(ctx, io = runtime(ctx.signal)) {
     if (!diff.files.length) throw new Error("Implementation produced no reviewable changes.");
     ctx.phase("Critique");
     const rubberDuck = await io.rubberDuck(ctx.runId, round, {
-      request: JSON.parse(request), plans, files: diff.files, diff: diff.diff
+      request: JSON.parse(request), plan: plans.at(-1), files: diff.files, diff: diff.diff
     });
     if (rubberDuck?.exitCode !== 0 || typeof rubberDuck.output !== "string" ||
         !rubberDuck.output.trim() || rubberDuck.output.length > 16_000) {
