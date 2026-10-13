@@ -8,11 +8,18 @@ Node.js task planner. No private services or MCP servers are required.
 
 ## 1. Install and sign in
 
-Install **Node.js 22+**, **Git**, **GitHub CLI (`gh`)** and
-[GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli).
-Your account needs Copilot access, experimental dynamic workflows, `/rubber-duck`
-and the models in [the shared config](skills/issue-to-pr/scripts/config.mjs).
-Live runs used CLI **1.0.96-2** on Windows.
+### Prerequisites
+
+| Requirement | Details |
+| --- | --- |
+| Node.js | 22 or newer |
+| Git | Any recent version |
+| GitHub CLI (`gh`) | Authenticated with `gh auth login` |
+| [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli) | Signed in with `copilot login`; live runs used 1.0.96-2 on Windows |
+| GitHub Copilot subscription | An active plan (e.g. Pro) that includes Copilot CLI; organization policies must allow it |
+| Models | The execution and review models named in the [shared config](skills/issue-to-pr/scripts/config.mjs) must be available to your account and enabled by policy |
+| CLI features | Experimental dynamic workflows (`--experimental`) and `/rubber-duck` |
+| Repository | Writable repository or fork with Issues enabled |
 
 Clone your writable repository or fork, with Issues enabled:
 
