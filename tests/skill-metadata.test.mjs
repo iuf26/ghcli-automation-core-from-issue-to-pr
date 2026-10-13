@@ -16,7 +16,9 @@ test("skill exposes bounded compatibility, string metadata and prerequisites bef
   }
   assert.ok(source.indexOf("## Prerequisites") < source.indexOf("## Workflow"));
   for (const requirement of ["Node.js 22+", "gh auth status", "copilot workflow run --help",
-    "/rubber-duck", "copilot skill add"]) assert.ok(source.includes(requirement));
+    "copilot help commands", "/rubber-duck", "copilot skill add", "scripts/config.mjs"]) {
+    assert.ok(source.includes(requirement));
+  }
 });
 
 test("review model ID is defined only in the shared skill config", async () => {

@@ -6,28 +6,71 @@ GitHub issue and receive a reviewable pull request. **You decide whether to merg
 Includes a reusable skill, a code-defined dynamic workflow and a dependency-free
 Node.js task planner. No private services or MCP servers are required.
 
-## 1. Install and sign in
+## Prerequisites and setup
 
-Install **Node.js 22+**, **Git**, **GitHub CLI (`gh`)** and
-[GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli).
-Your account needs Copilot access, experimental dynamic workflows, `/rubber-duck`
-and the models in [the shared config](skills/issue-to-pr/scripts/config.mjs).
+Review these requirements before cloning the repo or starting a run. This demo documents the prerequisites it depends on; it does **not** currently perform an up-front entitlement or subscription validator for you.
+
+### Local skill prerequisites
+
+Use this checklist for running the skill from your own checkout:
+
+| Requirement | What you need |
+| --- | --- |
+| Local tools | **Node.js 22+**, **Git**, **GitHub CLI (`gh`)**, and [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli) installed on `PATH` |
+| GitHub and Copilot sign-in | Authenticated GitHub CLI and Copilot CLI access for the account that will run the workflow |
+| Copilot entitlement | An eligible Copilot plan/account, or equivalent entitlement, for the account that will run the required Copilot CLI features and configured models |
+| Copilot features | Access to experimental dynamic workflows and the built-in `/rubber-duck` command |
+| Model access | Access to the models configured in [the shared config](skills/issue-to-pr/scripts/config.mjs) |
+| Repository permissions | A writable repository or fork with Issues enabled; local PR delivery needs repository write access |
+| Skill files | The complete `./skills` directory, including companion workflow and agent files, not only `SKILL.md` |
+
 Live runs used CLI **1.0.96-2** on Windows.
 
-Clone your writable repository or fork, with Issues enabled:
+### Quick validation
+
+Before running unattended, confirm the expected tools and features are available:
+
+```powershell
+node --version
+git --version
+gh auth status
+copilot login
+copilot workflow run --help
+copilot help commands
+```
+
+`copilot help commands` should list `/rubber-duck`. If your account, policy or
+model access does not allow these features, the workflow will stop later with a
+blocker; `--allow-all-tools` does not bypass missing permissions or account policy.
+
+### Install the local skill
+
+Clone your writable repository or fork, then register the skill:
 
 ```powershell
 gh auth login
-copilot login
 git clone https://github.com/iuf26/ghcli-automation-core-from-issue-to-pr.git
 cd ghcli-automation-core-from-issue-to-pr
 copilot skill add ./skills
 ```
 
 Install the complete skill directory, not only `SKILL.md`. Keep its companion
-workflow and agent files in the checkout. No `npm install` is needed.
+workflow and agent files in the checkout. No `npm install` is needed just to add the skill.
 
-## 2. Choose an issue
+### Optional hosted GitHub Actions path
+
+The repository also documents a hosted route in
+[remote setup and limitations](docs/remote-automation.md). Its prerequisites are
+different from local execution:
+
+- the account behind `COPILOT_TOKEN` needs an eligible Copilot plan/account,
+  experimental dynamic workflows, and access to the configured models;
+- `COPILOT_TOKEN` needs **Copilot Requests** permission;
+- do **not** treat that token as a repository-write credential requirement.
+
+The local skill remains the main interactive entry point.
+
+## Choose an issue
 
 Use **New issue → Demo task**. Include observable acceptance criteria and scope.
 Good examples are fixing remaining-effort calculation, adding a daily priority
@@ -36,7 +79,7 @@ list, or comparing unfinished work with a capacity budget.
 Use a small application task: this demo's workflow does not edit its own
 infrastructure. Issue numbers and URLs belong to your repository, not this clone.
 
-## 3. Run it unattended
+## Run it unattended
 
 Prefer invoking Copilot directly? After installing the skill:
 
