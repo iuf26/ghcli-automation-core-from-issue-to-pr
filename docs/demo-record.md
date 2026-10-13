@@ -538,7 +538,7 @@ visibility change or history rewrite was performed.
 A fresh direct workflow run on 10 October 2026 used scaffold
 `96ec4dcda7f09cab84df964a504efb3116edd062`, Copilot CLI 1.0.96-2 and issue #1.
 Run `b9db2a28-9c51-40cc-924b-96a0dbf653be` completed `ready_for_pr`.
-All execution calls requested `gpt-6.1-sol`. The native Rubber duck reviews
+All execution calls requested `gpt-5.4`. The native Rubber duck reviews
 requested `gpt-6-luna`; successful built-in task delegation and that actual model
 were verified from JSONL events, not inferred from the outer CLI model alone.
 No custom critic, coordinator or specialist-reviewer profiles were loaded.
