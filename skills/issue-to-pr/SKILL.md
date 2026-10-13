@@ -70,8 +70,12 @@ No MCP server is required. Read [the runbook](references/runbook.md) before runn
    at most three total cycles (initial plus two revisions), not three extra retries.
    Unusable consultation or missing evidence for either review area cannot pass;
    the main decision and executable checks must both pass.
-   Inspect blocked/error results; escalate rather than
-   creating a PR with a failing gate.
+   Inspect blocked/error results. Errors, failed executable checks or unusable
+   review evidence must be escalated, not published. If the run is `blocked` only
+   because the final (third) cycle's review still has open findings, and both
+   executable checks exit 0, the PR is still allowed: open it with the open findings
+   (file:line, reason, fix) under a "Needs human attention" heading and state the
+   `blocked` status and cycle cap in the limitations. Never present it as passed.
 6. Verify the final diff matches the report's `diffHash`, the current branch and
    `head`, using the command in the runbook. Read the diff, check acceptance
    evidence, and confirm the issue has not changed. If the tree or issue changed,

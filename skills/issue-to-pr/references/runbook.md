@@ -136,7 +136,11 @@ Only run one editing workflow in a worktree at a time.
 Agent `null` outputs, malformed plans, out-of-scope edits, changed HEAD/branch,
 oversized input/diffs and failed commands are explicit failures. Preserve the
 worktree and error evidence; do not reset it automatically. Blocking critique or
-failed checks after three total cycles return `status: "blocked"`; no PR is allowed.
+failed checks after three total cycles return `status: "blocked"`. Failed checks,
+errors or unusable review evidence allow no PR. If only review findings remain open
+and both checks exit 0, the skill may open the PR after verifying `diffHash`/`head`,
+listing every open finding under "Needs human attention" and disclosing the
+`blocked` status; humans decide on merging.
 
 Use `/workflows` to pause/cancel and inspect errors. Do not resume a run after
 changing the worktree: agents and durable steps can replay stale results.
