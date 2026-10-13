@@ -19,8 +19,8 @@ Clone your writable repository or fork, with Issues enabled:
 ```powershell
 gh auth login
 copilot login
-gh repo clone YOUR-ACCOUNT/ghcli-automate-anything
-Set-Location ghcli-automate-anything
+git clone https://github.com/iuf26/ghcli-automation-core-from-issue-to-pr.git
+cd ghcli-automation-core-from-issue-to-pr
 copilot skill add .\skills
 ```
 
@@ -38,22 +38,10 @@ infrastructure. Issue numbers and URLs belong to your repository, not this clone
 
 ## 3. Run it unattended
 
-From a **clean, trusted checkout**, run one command with your issue URL:
-
-```powershell
-node scripts\solve-issue.mjs https://github.com/YOUR-ACCOUNT/ghcli-automate-anything/issues/11
-```
-
-The script checks the issue belongs to this checkout, uses the current branch as
-the approved base, and starts Copilot with the full instruction and permissions.
-It requests an isolated feature worktree, review, checks and a linked PR.
-**No skill name or interactive prompt is required.** Stop conditions produce a
-blocker rather than an automatic merge.
-
 Prefer invoking Copilot directly? After installing the skill:
 
-```powershell
-copilot --experimental --allow-all-tools --no-ask-user -p "Solve https://github.com/YOUR-ACCOUNT/ghcli-automate-anything/issues/11 and open a linked PR. Use the current clean branch as the approved base and an isolated feature worktree. Do not merge or close the issue."
+```
+copilot --experimental --allow-all-tools --no-ask-user -p "Solve https://github.com/YOUR-ACCOUNT/ghcli-automation-core-from-issue-to-pr/issues/11 and open a linked PR. Use the current clean branch as the approved base and an isolated feature worktree. Do not merge or close the issue."
 ```
 
 Skill selection from ordinary language is model-driven, not guaranteed.
