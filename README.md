@@ -21,7 +21,7 @@ gh auth login
 copilot login
 git clone https://github.com/iuf26/ghcli-automation-core-from-issue-to-pr.git
 cd ghcli-automation-core-from-issue-to-pr
-copilot skill add .\skills
+copilot skill add ./skills
 ```
 
 Install the complete skill directory, not only `SKILL.md`. Keep its companion
@@ -41,7 +41,7 @@ infrastructure. Issue numbers and URLs belong to your repository, not this clone
 Prefer invoking Copilot directly? After installing the skill:
 
 ```
-copilot --experimental --allow-all-tools --no-ask-user -p "Solve https://github.com/YOUR-ACCOUNT/ghcli-automation-core-from-issue-to-pr/issues/11 and open a linked PR. Use the current clean branch as the approved base and an isolated feature worktree. Do not merge or close the issue."
+copilot --experimental --allow-all-tools --no-ask-user -p "Solve https://github.com/YOUR-ACCOUNT/ghcli-automation-core-from-issue-to-pr/issues/11. Use the current clean branch as the approved base and an isolated feature worktree. Do not merge or close the issue."
 ```
 
 Skill selection from ordinary language is model-driven, not guaranteed.
