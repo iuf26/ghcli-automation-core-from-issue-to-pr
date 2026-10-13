@@ -117,8 +117,19 @@ export function runtime(signal, runCommand = command, root = process.cwd()) {
       await mkdir(directory.path, { recursive: true });
       const filename = `.demo-runs/${runId}-rubber-duck-${round}.json`;
       const packet = await repositoryPath(filename, { root, allowMissing: true });
-      await writeFile(packet.path, JSON.stringify(review, null, 2));
-      const prompt = `/rubber-duck Read the review packet at the exact absolute path ${packet.path}. ` +
+      const patch = await repositoryPath(`.demo-runs/${runId}-rubber-duck-${round}.patch`, { root, allowMissing: true });
+      const { diff = "", ...rest } = review;
+      const packetText = JSON.stringify({ ...rest, diffFile: patch.path }, null, 2);
+      // The reviewer's view tool rejects files over 20KB and shell is denied.
+      for (const [name, text] of [["packet", packetText], ["diff", diff]]) {
+        if (Buffer.byteLength(text) > 18_000) {
+          throw new Error(`Rubber duck review ${name} exceeds 18KB and cannot be read by the reviewer; stop.`);
+        }
+      }
+      await writeFile(patch.path, diff);
+      await writeFile(packet.path, packetText);
+      const prompt = `/rubber-duck Read the review packet at the exact absolute path ${packet.path}, ` +
+        `then the plain-text completed diff at ${patch.path} (the packet's diffFile). ` +
         `The approved repository root is ${root}; resolve listed source paths relative to that root, ` +
         "not a parent checkout or a subagent's default directory. Pass these absolute paths to the reviewer. " +
         `Use ${reviewModel} for the built-in rubber-duck subagent too; explicitly set its model to ` +

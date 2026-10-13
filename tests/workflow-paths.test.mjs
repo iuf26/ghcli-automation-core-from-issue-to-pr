@@ -177,8 +177,12 @@ test("Rubber duck uses a guarded review packet and bounded read-only CLI invocat
     const result = await io.rubberDuck("run-id", 0, review);
     assert.equal(result.exitCode, 0);
     assert.equal(result.output, "Concrete independent critique");
+    const { diff: reviewDiff, ...reviewRest } = review;
+    const patchPath = path.join(root, ".demo-runs", "run-id-rubber-duck-0.patch");
     assert.deepEqual(JSON.parse(await readFile(
-      path.join(root, ".demo-runs", "run-id-rubber-duck-0.json"), "utf8")), review);
+      path.join(root, ".demo-runs", "run-id-rubber-duck-0.json"), "utf8")), { ...reviewRest, diffFile: patchPath });
+    assert.equal(await readFile(patchPath, "utf8"), reviewDiff);
+    await assert.rejects(() => io.rubberDuck("run-id", 0, { ...review, diff: "x".repeat(18_001) }), /exceeds 18KB/);
     for (const [id, round] of [["../escape", 0], ["run-id", 3]]) {
       await assert.rejects(() => io.rubberDuck(id, round, review), /Invalid Rubber duck review identity/);
     }
@@ -195,8 +199,9 @@ test("Rubber duck uses a guarded review packet and bounded read-only CLI invocat
     }
     const thirdCycle = runtime(undefined, async () => transcript("Third-cycle critique"), root);
     assert.equal((await thirdCycle.rubberDuck("run-id", 2, review)).output, "Third-cycle critique");
-    assert.deepEqual(JSON.parse(await readFile(
-      path.join(root, ".demo-runs", "run-id-rubber-duck-2.json"), "utf8")), review);
+    assert.equal(JSON.parse(await readFile(
+      path.join(root, ".demo-runs", "run-id-rubber-duck-2.json"), "utf8")).diffFile,
+      path.join(root, ".demo-runs", "run-id-rubber-duck-2.patch"));
     const correctedCall = [
       { type: "assistant.message", data: { toolRequests: [{
         name: "task", toolCallId: "invalid", arguments: { agent_type: "rubber-duck", model: reviewModel }
