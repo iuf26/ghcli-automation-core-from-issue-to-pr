@@ -19,9 +19,8 @@ export function launchOptions(issueUrl, repositoryUrl, base, env = process.env) 
     throw new Error("Start from a named, approved base branch.");
   }
   const prompt = `Solve GitHub issue ${issue.href} in this repository and open a linked PR. ` +
-    `Follow the installed repository skill for implementing issues and its registered issue-to-pr workflow. ` +
+    `Follow the installed repository skill for implementing issues` +
     `The approved base is ${base}. Create an isolated feature worktree from its clean tip before editing. ` +
-    `Gather context, implement, obtain Rubber duck critique and run executable checks within three total cycles. ` +
     `Do not bypass a failed gate or substitute free-form implementation for a failed workflow. ` +
     `I authorize edits, commits, push and PR creation, not merge or issue closure. ` +
     `Work unattended; stop with an explicit blocker if requirements, permissions or review are unavailable.`;
