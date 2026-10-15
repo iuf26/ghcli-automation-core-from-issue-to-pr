@@ -64,12 +64,9 @@ test("publishing requires matching identity, both review areas, Luna and passing
 test("Actions keeps publication credentials outside the generation job and omits private logs", async () => {
   const yaml = await readFile(".github/workflows/issue-to-pr.yml", "utf8");
   const [implement, publish] = yaml.split("  publish:");
-  const [diagnostic] = implement.split("  implement:");
   assert.match(implement, /persist-credentials: false/);
   assert.doesNotMatch(implement, /contents: write|pull-requests: write|local-transcript/);
-  assert.match(implement, /review-access-diagnostic/);
-  assert.match(implement, /inputs\.issue == '14'/);
-  assert.doesNotMatch(diagnostic, /upload-artifact/);
+  assert.doesNotMatch(implement, /upload-artifact/);
   assert.doesNotMatch(yaml, /actions\/(?:upload-artifact|download-artifact)@/);
   assert.doesNotMatch(yaml, /actions\/(?:checkout|setup-node)@v4/);
   assert.match(yaml, /actions\/checkout@v7/);
@@ -77,7 +74,6 @@ test("Actions keeps publication credentials outside the generation job and omits
   assert.match(implement, /reviewed-report: \$\{\{ steps\.transfer\.outputs\.report \}\}/);
   assert.match(implement, /remote-issue\.mjs export/);
   assert.match(publish, /needs: implement/);
-  assert.match(publish, /inputs\.issue != '14'/);
   assert.match(publish, /remote-issue\.mjs import/);
   assert.match(publish, /needs\.implement\.outputs\.reviewed-report/);
   assert.match(publish, /contents: write/);
