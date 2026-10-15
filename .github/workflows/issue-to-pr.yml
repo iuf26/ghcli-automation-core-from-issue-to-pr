@@ -19,38 +19,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  diagnose-review-access:
-    if: github.event_name == 'workflow_dispatch' && inputs.issue == '14'
-    runs-on: [self-hosted, Windows, X64]
-    timeout-minutes: 20
-    environment: copilot-demo
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-      - name: Validate maintainer authorization
-        run: node scripts\remote-issue.mjs authorize
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE_NUMBER: ${{ inputs.issue }}
-      - name: Install verified CLI version
-        run: |
-          npm install --global @github/copilot@1.0.96-2
-          if ($LASTEXITCODE -ne 0) { throw 'Copilot installation failed' }
-          $globalRoot = npm root --global
-          $binary = node --input-type=module -e "import {createRequire} from 'node:module'; import path from 'node:path'; process.stdout.write(createRequire(path.join(process.argv[1], '@github', 'copilot', 'npm-loader.js')).resolve('@github/copilot-win32-x64'));" $globalRoot
-          if ($LASTEXITCODE -ne 0 -or !(Test-Path $binary)) { throw 'Native Copilot binary not found' }
-          "COPILOT_CLI_PATH=$binary" >> $env:GITHUB_ENV
-      - name: Run bounded review access diagnostic
-        run: node scripts\review-access-diagnostic.mjs
-        env:
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_TOKEN }}
   implement:
-    if: (github.event_name == 'workflow_dispatch' && inputs.issue != '14') || github.event.label.name == 'copilot-approved'
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'copilot-approved'
     runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 45
     environment: copilot-demo
@@ -91,7 +61,6 @@ jobs:
 
   publish:
     needs: implement
-    if: github.event_name != 'workflow_dispatch' || inputs.issue != '14'
     runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 10
     permissions:
