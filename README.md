@@ -85,9 +85,14 @@ invocation stops at a checked diff/report—it does not commit, push or publish.
 ## Run through GitHub Actions
 
 A maintainer applies **`copilot-approved`**, or manually dispatches
-**Approved issue to PR**. The configured runner must be online; separate jobs
-handle engineering and publication. Self-hosted jobs on the same persistent
-machine are not a security isolation boundary.
+**Approved issue to PR**. The configured runner must be online. A single job
+authorizes the request, registers the installed skill and runs Copilot
+unattended with a direct instruction to solve the issue; the skill itself
+implements, critiques, checks and publishes the PR, the same way the
+noninteractive `solve-issue.mjs` launcher does locally. The job holds
+write credentials for its full duration, so this is weaker isolation than a
+split engineering/publication design. Self-hosted jobs on the same persistent
+machine are not a security isolation boundary either.
 
 Configure credentials and Actions PR permissions first.
 See [remote setup and limitations](docs/remote-automation.md). A failed review
