@@ -11,27 +11,24 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
   issues: read
+  pull-requests: write
 
 concurrency:
   group: issue-to-pr-${{ github.event.issue.number || inputs.issue }}
   cancel-in-progress: false
 
 jobs:
-  implement:
+  solve:
     if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'copilot-approved'
     runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 45
     environment: copilot-demo
-    outputs:
-      reviewed-report: ${{ steps.transfer.outputs.report }}
-      reviewed-patch: ${{ steps.transfer.outputs.patch }}
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
@@ -48,40 +45,11 @@ jobs:
           $binary = node --input-type=module -e "import {createRequire} from 'node:module'; import path from 'node:path'; process.stdout.write(createRequire(path.join(process.argv[1], '@github', 'copilot', 'npm-loader.js')).resolve('@github/copilot-win32-x64'));" $globalRoot
           if ($LASTEXITCODE -ne 0 -or !(Test-Path $binary)) { throw 'Native Copilot binary not found' }
           "COPILOT_CLI_PATH=$binary" >> $env:GITHUB_ENV
-      - name: Execute bounded engineering workflow
-        run: node scripts\remote-issue.mjs implement
+      - name: Register the issue-to-pr skill
+        run: copilot skill add .\skills
+      - name: Solve the approved issue and open a PR
+        run: node scripts\solve-issue.mjs "https://github.com/${{ github.repository }}/issues/${{ github.event.issue.number || inputs.issue }}"
         env:
           GH_TOKEN: ${{ github.token }}
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_TOKEN }}
           GITHUB_COPILOT_PROMPT_MODE_EXTENSIONS: 'true'
-          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue }}
-      - name: Prepare bounded reviewed transfer
-        id: transfer
-        run: node scripts\remote-issue.mjs export
-
-  publish:
-    needs: implement
-    runs-on: [self-hosted, Windows, X64]
-    timeout-minutes: 10
-    permissions:
-      contents: write
-      pull-requests: write
-      issues: read
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-      - name: Restore bounded reviewed transfer
-        run: node scripts\remote-issue.mjs import
-        env:
-          REVIEWED_REPORT_B64: ${{ needs.implement.outputs.reviewed-report }}
-          REVIEWED_PATCH_B64: ${{ needs.implement.outputs.reviewed-patch }}
-      - name: Verify freshness and publish linked PR
-        run: node scripts\remote-issue.mjs publish
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue }}

@@ -61,23 +61,21 @@ test("publishing requires matching identity, both review areas, Luna and passing
   ]) assert.throws(() => validateReport({ ...report, ...change }, expected));
 });
 
-test("Actions keeps publication credentials outside the generation job and omits private logs", async () => {
+test("Actions authorizes the maintainer, then lets the installed skill solve and publish the PR itself", async () => {
   const yaml = await readFile(".github/workflows/issue-to-pr.yml", "utf8");
-  const [implement, publish] = yaml.split("  publish:");
-  assert.match(implement, /persist-credentials: false/);
-  assert.doesNotMatch(implement, /contents: write|pull-requests: write|local-transcript/);
-  assert.doesNotMatch(implement, /upload-artifact/);
+  assert.match(yaml, /jobs:\n {2}solve:/);
+  assert.doesNotMatch(yaml, /\n {2}publish:/);
+  assert.doesNotMatch(yaml, /persist-credentials: false/);
+  assert.match(yaml, /contents: write/);
+  assert.match(yaml, /pull-requests: write/);
   assert.doesNotMatch(yaml, /actions\/(?:upload-artifact|download-artifact)@/);
   assert.doesNotMatch(yaml, /actions\/(?:checkout|setup-node)@v4/);
   assert.match(yaml, /actions\/checkout@v7/);
   assert.match(yaml, /actions\/setup-node@v7/);
-  assert.match(implement, /reviewed-report: \$\{\{ steps\.transfer\.outputs\.report \}\}/);
-  assert.match(implement, /remote-issue\.mjs export/);
-  assert.match(publish, /needs: implement/);
-  assert.match(publish, /remote-issue\.mjs import/);
-  assert.match(publish, /needs\.implement\.outputs\.reviewed-report/);
-  assert.match(publish, /contents: write/);
-  assert.doesNotMatch(publish, /COPILOT_TOKEN|npm install|node --test/);
+  assert.match(yaml, /remote-issue\.mjs authorize/);
+  assert.match(yaml, /copilot skill add \.\\skills/);
+  assert.match(yaml, /remote-issue\.mjs authorize/);
+  assert.match(yaml, /solve-issue\.mjs "https:\/\/github\.com\/\$\{\{ github\.repository \}\}\/issues\/\$\{\{ github\.event\.issue\.number \|\| inputs\.issue \}\}"/);
   assert.match(yaml, /cancel-in-progress: false/);
 });
 
