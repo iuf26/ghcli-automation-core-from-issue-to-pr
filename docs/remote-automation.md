@@ -1,12 +1,16 @@
 # Run an approved issue remotely
 
-The documented setup can run the same registered Copilot dynamic workflow on an
-ephemeral Windows runner in GitHub Actions. It creates a linked PR, never merges
-or closes the issue. This repository also supports manual dispatch. No private services or
-company-internal credentials are needed.
-The local skill remains the interactive entry point. Actions invokes the
-registered workflow directly and uses a deterministic publishing helper, rather
-than asking a parent agent to execute the skill and publish with write credentials.
+The documented setup runs the same noninteractive, unattended Copilot invocation
+used locally (`scripts/solve-issue.mjs`) on an ephemeral Windows runner in
+GitHub Actions: a direct instruction to solve the approved issue, with the
+installed `issue-to-pr` skill registered first so Copilot picks it up. It
+creates a linked PR, never merges or closes the issue. This repository also
+supports manual dispatch. No private services or company-internal credentials
+are needed.
+A single job authorizes the request, then lets Copilot implement, critique,
+check and publish the PR itself with write credentials for the job's full
+duration — this is weaker isolation than a split engineering/publication
+design; see [Engineering and publication](#engineering-and-publication) below.
 
 This setup description is not confirmation of current activation or runner
 topology. The issue #14 incident reports self-hosted execution; neither that
@@ -58,41 +62,35 @@ Before the first scaffold merge, GitHub may not offer manual dispatch because th
 workflow is not registered on the default branch. Local CLI verification is not
 proof of hosted Actions execution.
 
-## Engineering and publication are separate
+## Engineering and publication
 
 ```mermaid
 flowchart TD
-    A[Maintainer approves issue] --> B[Actions: read-only repository token]
-    B --> C[Same dynamic workflow: implement, Rubber duck, checks]
-    C --> D{Matching ready-for-PR report?}
-    D -->|No| E[Fail visibly; no PR]
-    D -->|Yes| F[Transfer reviewed patch and report]
-    F --> G[Separate publishing job: verify hash and freshness]
-    G --> H[Push feature branch and open PR]
-    H --> I[Human review]
+    A[Maintainer approves issue] --> B[Actions: authorize actor, label and fresh base]
+    B --> C[Register the installed issue-to-pr skill]
+    C --> D[Unattended Copilot: implement, Rubber duck, checks]
+    D --> E{Skill's own gate passes?}
+    E -->|No| F[Fail visibly; no PR]
+    E -->|Yes| G[Skill commits, pushes and opens the PR itself]
+    G --> H[Human review]
 ```
 
-The engineering job has no repository-write credential. Checkout does not persist
-credentials. The separate publisher checks the report identity, review evidence,
-passed checks, allowed paths, patch hash and live issue/base before committing.
-It does not rerun generated tests with its write token. Its trusted helper and
-workflow configuration cannot be edited by the engineering workflow.
-PRs created with `GITHUB_TOKEN` normally do not trigger other Actions workflows.
-The recorded engineering checks still ran; do not assume separate PR CI ran
-unless GitHub shows those checks. A separately configured GitHub App publishing
-token is an option if downstream CI triggers are required.
-
-Only the bounded report and patch are passed as job outputs to the separate
-publisher; no Actions artifact storage is required. Raw Copilot transcripts
-remain local to the disposable runner. Reports and patches still contain
-issue/code/review data: inspect before sharing or screenshotting.
-Runs have per-issue concurrency, a 45-minute engineering-job timeout and at most
-three total engineering cycles. Failed runs are not automatically restarted.
+A single job holds `contents: write` and `pull-requests: write` for its full
+duration; there is no separate, lower-privileged engineering step and no
+report/patch handoff to check before publication. The skill is the same one
+documented in the main [README](../README.md) and exercised by
+`scripts/solve-issue.mjs` locally: it still owns its internal gates (Rubber
+duck critique, executable checks, at most three total cycles), but nothing
+outside the Copilot session re-verifies those gates before `git push`/`gh pr
+create` run. Raw Copilot transcripts and any intermediate reports stay local
+to the disposable runner; they are not uploaded as Actions artifacts.
+Runs have per-issue concurrency and a 45-minute job timeout. Failed runs are
+not automatically restarted.
 
 ## Limits and recovery
 
-This is not a security sandbox. Generated code runs tests in the engineering
-job and can access that job's Copilot token, read-only GitHub token and network.
+This is not a security sandbox. Generated code runs tests in the job and can
+access that job's Copilot token, its write-scoped `GITHUB_TOKEN` and network.
 Use only approved small issues and trusted base code. The documented hosted setup
 needs no unrelated secrets or self-hosted runner. Prompt instructions and path guards do not provide
 process isolation or prevent token exfiltration by malicious code.
